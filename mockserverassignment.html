@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="csrf-token" content="your_csrf_token_here">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Server Assignment</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+</head>
+<body onload="loadTable()">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-xs-12 col-md-12">
+                <button type="button" class="btn btn-primary" onclick="addEditableRow()"> Add </button>
+            </div>
+            <div class="col" id="content">
+            </div>
+        </div>
+    </div>
+<script>
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const elem = document.getElementById("content");
+    const table = document.querySelector('table');
+    function loadTable(){
+        fetch('http://localhost:3000/posts')
+        .then((response)=>response.json())
+        .then((data)=>constructTable(data))
+}
+    function deletePost(id){
+        fetch('http://localhost:3000/posts/'+id,{
+            method : 'DELETE',
+            headers : {
+                'X-CSRF-Token': csrfToken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({}),
+        })
+        .then(()=>loadTable());
+        
+        console.log('Data deleted successfully.');   
+}
+function constructTable(list){
+    output = `
+    <table class="table table-bordered">
+        <thead class="thead-dark">
+            <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Title</th>
+            <th scope="col">Content</th>
+            <th scope="col">User</th>
+            <th scope="col">Action</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">`
+            list.forEach(post => {
+                output +=
+                `<tr data-id="${post.id}">
+                    <th scope="row"> ${post.id}</th>
+                    <td> ${post.title} </td>
+                    <td> ${post.body} </td>
+                    <td> ${post.userId} </td>
+                    <td> 
+                        <button type="button" class="btn btn-warning" onclick="editRow(this)">Edit</button>
+                        <button type="button" class="btn btn-danger" onclick="deletePost(${post.id})">Delete</button>
+                    </td>
+                </tr>` 
+            });
+            output +=
+        `</tbody>
+    </table>`
+    elem.innerHTML =output
+}
+function editRow(button) {
+  const row = button.closest("tr");
+  const cells = row.querySelectorAll("td");
+
+  // Convert cells to input fields
+  for (let i = 0; i < cells.length - 1; i++) {
+    const currentText = cells[i].innerText;
+    cells[i].innerHTML = `<input value="${currentText}" />`;
+  }
+
+  // Change "Edit" to "Save"
+  button.textContent = "Save";
+  button.onclick = function () { saveRow(this); };
+}
+
+function saveRow(button) {
+  const row = button.closest("tr");
+  const cells = row.querySelectorAll("td");
+  const id = row.getAttribute("data-id");
+  const updatedData = {
+    title : cells[0].querySelector("input").value,
+    body: cells[1].querySelector("input").value,
+    userId : cells[2].querySelector("input").value
+  }
+  fetch(`http://localhost:3000/posts/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(updatedData)
+  })
+  .then(response => response.json())
+  .then(data => {
+    // Update table with new data
+    row.children[1].innerText = data.title;
+    row.children[2].innerText = data.body;
+    row.children[3].innerText = data.userId;
+    button.textContent = "Edit";
+    button.onclick = function () { editRow(this); };
+  });
+}
+
+// Add new row with input fields
+function addEditableRow() {
+  const tbody = document.getElementById("tableBody");
+  const row = document.createElement("tr");
+  row.innerHTML = `
+    <td><input type="text" placeholder="ID"/></td>
+    <td><input type="text" placeholder="Title" /></td>
+    <td><input type="text" placeholder="Content" /></td>
+    <td><input type="number" placeholder="User ID" /></td>
+    <td><button class="btn btn-success" onclick="saveNewRow(this)">Save</button></td>`;
+  tbody.appendChild(row);
+}
+// Save new row to JSON server
+function saveNewRow(button) {
+  const row = button.closest("tr");
+  const inputs = row.querySelectorAll("input");
+  const id = inputs[0].value;
+  const title = inputs[1].value;
+  const body = inputs[2].value;
+  const userId = inputs[3].value;
+ 
+  const newPost = {id, title, body, userId };
+
+  fetch(`http://localhost:3000/posts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(newPost)
+  })
+  .then(()=>loadTable());
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
+</body>
+</html>
