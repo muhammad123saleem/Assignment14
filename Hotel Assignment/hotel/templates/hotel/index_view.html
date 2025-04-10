@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block title  %}
+    Get View
+{% endblock  %}
+{% block content  %}
+  <table class="table table-striped table-hover">
+    <a href="{%url 'hotel:create_view'%}" type="button" class="btn btn-primary">Add</a>
+    <thead>
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Name</th>
+            <th scope="col">Address</th>
+            <th scope="col">No Of Rooms</th>
+            <th scope="col">Occupied Rooms</th>
+            <th scope="col">Action</th>
+        </tr>
+    </thead>
+    {% for hotel in hotels  %}
+    <tbody>
+        <tr>
+            <th scope="row">{{hotel.id}}</th>
+            <td>{{hotel.name}}</td>
+            <td>{{hotel.address}}</td>
+            <td>{{hotel.number_of_rooms}}</td>
+            <td>{{hotel.occupied_rooms}}</td>
+            <td>
+                 <a href="{%url 'hotel:update_view' hotel.id %}" type="button" class="btn btn-warning">Update</a>
+                 <a href="{%url 'hotel:delete_view' hotel.id %}" type="button" class="btn btn-danger">Delete</a>
+            </td>
+    </tbody>
+    {% endfor %}
+  </table>
+{% endblock  %}

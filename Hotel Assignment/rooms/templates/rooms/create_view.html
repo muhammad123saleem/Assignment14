@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block title  %}
+Create
+{% endblock  %}
+{% block content  %}
+<section>
+    <form enctype='multipart/form-data' action="{% url 'rooms:create_view' %}" method='post' class='form-with-validation'>
+        {% csrf_token %}
+        {{form}}
+        <button class="form-submit btn btn-success">Add</button>
+    </form>
+</section>
+{% endblock  %}
