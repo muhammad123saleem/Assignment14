@@ -1,0 +1,25 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 40px;
+    display: flex;
+    gap: 50px;
+    justify-content: center;
+  }
+
+  .box {
+    width: 200px;
+    height: 200px;
+    border: 2px dashed #888;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f9f9f9;
+  }
+
+  .draggable {
+    width: 60px;
+    height: 60px;
+    background-color: teal;
+    border-radius: 8px;
+    cursor: grab;
+  }
